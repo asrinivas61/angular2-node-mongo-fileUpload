@@ -1,5 +1,5 @@
 var multer = require('multer');
-var mongoDump = require('./xls_json.js');
+var dbOper = require('./dbOperation.js');
 
 module.exports = function (app) {
 	
@@ -13,26 +13,24 @@ module.exports = function (app) {
 	});
 	var upload = multer({ storage: storage });
 
+	/*----------  File Upload  ----------*/
+
 	app.post('/Wipro-EmpData/submit', upload.single('fileUpload'), function (req, res, next) {
-		mongoDump(req.file.originalname);
-		res.send('File uploaded successfully');
+		let opp = dbOper.mongoDump(req.file.originalname, (err, result) => {
+			if(err) {
+				res.send(err);
+				return;
+			}
+			res.send('File uploaded successfully');
+		});
 	});
 
-	// /*----------  Accounts  ----------*/
+	/*----------  EMP details fetch  ----------*/
 
-	// app.get('/OBP-API-1.0/obp/v2.1.0/accounts', function(req, res, next) {
-	// 	console.log('accounts session: ', req.session);
-	// 	if(req.session.token) {
-	// 		request.get({
-	// 				headers: req.session.sessionHeaders,
-	// 				url: 'http://'+remoteServerIP+':'+remoteServerPORT+'/OBP-API-1.0/obp/v2.1.0/accounts',
-	// 			}, function(error, response, body){
-	// 			  if(error) console.log('ERROR: while trying to fetch user accounts ', error);
-	// 			  return res.send(JSON.parse(body));
-	// 		});
-	// 	} else {
-	// 		console.log('token undefined, Unauthenticated Access');
-	// 		res.redirect('/login');
-	// 	}
-	// });
+	app.get('/Wipro-EmpData/:id', function(req, res, next) {
+		dbOper.mongoFind(req.params.id)
+				.then((resp) => {
+					res.send(resp);
+				});
+	});
 };
